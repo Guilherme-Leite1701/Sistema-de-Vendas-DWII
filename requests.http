@@ -1,0 +1,133 @@
+### =====================================================================
+### Requisições de teste — use a extensão "REST Client" do VS Code
+### (clique em "Send Request" acima de cada bloco) ou copie para o
+### Insomnia/Postman. Supõe que o seed.sql foi executado.
+### =====================================================================
+
+@base = http://localhost:3000
+
+### Mapa da API
+GET {{base}}/
+
+### ---------------------------- VENDEDORES ----------------------------
+
+### Cadastrar vendedor (inicia ativo)
+POST {{base}}/vendedores
+Content-Type: application/json
+
+{
+  "nome": "Eduarda Ramos",
+  "meta_mensal": 18000,
+  "percentual_base": 5.5
+}
+
+### Listar todos
+GET {{base}}/vendedores
+
+### Listar apenas ativos
+GET {{base}}/vendedores?ativo=true
+
+### Buscar um vendedor
+GET {{base}}/vendedores/1
+
+### Atualizar meta e percentual base
+PUT {{base}}/vendedores/2
+Content-Type: application/json
+
+{
+  "meta_mensal": 12000,
+  "percentual_base": 5
+}
+
+### Desativar (soft delete)
+PATCH {{base}}/vendedores/3/desativar
+
+### Vendas de um vendedor (com resumo)
+GET {{base}}/vendedores/1/vendas
+
+### ------------------------------ VENDAS ------------------------------
+
+### Registrar venda (código gerado automaticamente)
+POST {{base}}/vendas
+Content-Type: application/json
+
+{
+  "id_vendedor": 1,
+  "id_regiao": 1,
+  "valor_venda": 5000,
+  "tipo_cliente": "PJ"
+}
+
+### Registrar venda com código e data informados
+POST {{base}}/vendas
+Content-Type: application/json
+
+{
+  "id_venda": 100,
+  "id_vendedor": 2,
+  "id_regiao": 4,
+  "valor_venda": 2500.50,
+  "tipo_cliente": "PF",
+  "data_venda": "2026-10-25 10:30:00"
+}
+
+### ERRO esperado (409): código de venda repetido
+POST {{base}}/vendas
+Content-Type: application/json
+
+{
+  "id_venda": 1,
+  "id_vendedor": 1,
+  "id_regiao": 1,
+  "valor_venda": 100,
+  "tipo_cliente": "PF"
+}
+
+### ERRO esperado (422): vendedor inativo (Diego, id 4)
+POST {{base}}/vendas
+Content-Type: application/json
+
+{
+  "id_vendedor": 4,
+  "id_regiao": 1,
+  "valor_venda": 100,
+  "tipo_cliente": "PF"
+}
+
+### ERRO esperado (400): valor zero e tipo inválido
+POST {{base}}/vendas
+Content-Type: application/json
+
+{
+  "id_vendedor": 1,
+  "id_regiao": 1,
+  "valor_venda": 0,
+  "tipo_cliente": "pf"
+}
+
+### Listar vendas
+GET {{base}}/vendas
+
+### Excluir venda
+DELETE {{base}}/vendas/100
+
+### ERRO esperado (404): venda inexistente
+DELETE {{base}}/vendas/9999
+
+### ----------------------------- COMISSÕES ----------------------------
+
+### Simular comissão sem gravar
+POST {{base}}/comissoes/calcular
+Content-Type: application/json
+
+{
+  "id_vendedor": 1,
+  "id_regiao": 4,
+  "valor_venda": 10000,
+  "tipo_cliente": "PJ"
+}
+
+### ----------------------------- RELATÓRIO ----------------------------
+
+### Relatório de performance de outubro/2026
+GET {{base}}/relatorios/performance?inicio=2026-10-01&fim=2026-10-31
